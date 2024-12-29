@@ -64,9 +64,6 @@ class TotpAuthenticator {
     const currentTimeStep = Math.floor(Date.now() / 1000 / period);
     const adjustedTimeStep = currentTimeStep + stepOffset;
     console.log("Time Step:", adjustedTimeStep);
-    // const decodedSecret = this.decodeBase32(secret);
-    // const currentTimeStep = Math.floor(Date.now() / 1000 / period);
-    // const adjustedTimeStep = currentTimeStep + stepOffset;
 
     const timeBuffer = Buffer.alloc(8);
     timeBuffer.writeBigInt64BE(BigInt(adjustedTimeStep), 0);
