@@ -21,6 +21,7 @@ router.post("/storeSecret", authController.storeSecretKey);
 router.post("/getSecret", authController.getSecretForLogin);
 router.post("/markSuccess", authController.markScannedSuccess);
 router.post("/checkScanStatus", authController.checkScanStatus);
+router.post("/getUserLevel", authController.getUserLevel);
 
 router.post("/verify-totp", verifyTotpCode);
 router.post("/verify-totp-login", verifyTotpCodeLogin);

@@ -143,6 +143,15 @@ const markScannedSuccess = async (req, res) => {
   }
 };
 
+const getUserLevel = async (req, res) => {
+  try {
+    const response = await User.getUserLevel(req.body);
+    res.json(response);
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
 const checkScanStatus = async (req, res) => {
   try {
     const response = await User.scannedStatus(req.body);
@@ -207,4 +216,5 @@ module.exports = {
   getPublicKeyForLogin,
   markScannedSuccess,
   checkScanStatus,
+  getUserLevel,
 };

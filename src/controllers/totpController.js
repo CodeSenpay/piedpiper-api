@@ -1,6 +1,12 @@
 // totpController.js
 const TotpAuthenticator = require("../utils/TotpAuthenticator");
-const { getUserSecret, MFAEnable } = require("../models/user");
+const {
+  getUserSecret,
+  MFAEnable,
+  getUserData,
+  storeToken,
+} = require("../models/user");
+const jwt = require("../utils/jwtProcess");
 const verifyTotpCode = async (req, res) => {
   const { userEmail, totpCode } = req.body;
   const totp = new TotpAuthenticator();
@@ -64,7 +70,20 @@ const verifyTotpCodeLogin = async (req, res) => {
   const isValid = totpCode === currentCode || totpCode === beforeCode;
 
   if (isValid) {
-    res.json({ success: true, message: "TOTP verified successfully!" });
+    const userData = await getUserData({ user_email: userEmail });
+    if (userData.statuscode === 1) {
+      const token = await jwt.generateToken(userData.user_id, userData.email);
+      const isTokenInserted = await storeToken({
+        email: userData.email,
+        token: token,
+      });
+      if (isTokenInserted.statuscode === 1) {
+        res.json({
+          success: true,
+          message: "TOTP verified successfully!",
+        });
+      }
+    }
   } else {
     res.json({ success: false, message: "Invalid TOTP code." });
   }

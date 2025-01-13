@@ -21,7 +21,6 @@ const authenticate = async (data) => {
       if (isValid) {
         const token = await jwt.generateToken(
           result[0][0].user_id,
-          result[0][0].username,
           result[0][0].email
         );
         return { token, isApprove: 1 };
@@ -115,6 +114,15 @@ const getUserSecret = async (data) => {
   }
 };
 
+const getUserData = async (data) => {
+  try {
+    const [result] = await pool.execute("CALL Get_User(?)", [data]);
+    return result[0][0];
+  } catch (err) {
+    return result[0][0];
+  }
+};
+
 const storeUserSecret = async (data) => {
   try {
     const [result] = await pool.execute("CALL Store_Secret(?)", [data]);
@@ -180,6 +188,15 @@ const scannedStatus = async (data) => {
     return result[0][0];
   }
 };
+
+const getUserLevel = async (data) => {
+  try {
+    const [result] = await pool.execute("CALL Get_User_Level(?)", [data]);
+    return result[0][0];
+  } catch (err) {
+    return result[0][0];
+  }
+};
 module.exports = {
   authenticate,
   register,
@@ -195,4 +212,6 @@ module.exports = {
   scannedSuccess,
   scannedStatus,
   logout,
+  getUserData,
+  getUserLevel,
 };
