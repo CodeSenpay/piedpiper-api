@@ -202,6 +202,9 @@ const getPublicKeyForLogin = async (req, res) => {
     res.json(response);
   }
 };
+
+const confirmPassword = async (req, res) => {};
+
 module.exports = {
   login,
   signup,
@@ -217,4 +220,5 @@ module.exports = {
   markScannedSuccess,
   checkScanStatus,
   getUserLevel,
+  confirmPassword,
 };
