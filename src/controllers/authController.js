@@ -203,6 +203,7 @@ const getPublicKeyForLogin = async (req, res) => {
   }
 };
 
+const confirmPayment = async () => {};
 const confirmPassword = async (req, res) => {};
 
 module.exports = {
@@ -221,4 +222,5 @@ module.exports = {
   checkScanStatus,
   getUserLevel,
   confirmPassword,
+  confirmPayment,
 };
