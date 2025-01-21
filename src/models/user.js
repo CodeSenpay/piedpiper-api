@@ -41,20 +41,23 @@ const register = async (data) => {
       ...data,
       user_password: hashedPassword,
     };
-    const [result] = await pool.execute("CALL Register_User(?)", [newData]);
 
-    if (result[0][0].statuscode === 1) {
-      const isEmailed = await mailer.sendOTPEmail(
-        newData.user_email,
-        newData.otp
-      );
-
-      return isEmailed.statuscode === 1 && result[0][0];
+    const isEmailed = await mailer.sendOTPEmail(
+      newData.user_email,
+      newData.otp
+    );
+    if (isEmailed.statuscode != 1) {
+      return { response: "No Intenet Connection", statuscode: 5 };
     } else {
-      return result[0][0];
+      const [result] = await pool.execute("CALL Register_User(?)", [newData]);
+      if (result[0][0].statuscode === 1) {
+        return result[0][0];
+      } else {
+        return result[0][0];
+      }
     }
   } catch (err) {
-    return { message: "Error on accessing the database" };
+    return { message: err.message };
   }
 };
 

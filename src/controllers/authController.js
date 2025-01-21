@@ -65,7 +65,7 @@ const signup = async (req, res) => {
     const newData = { ...req.body, otp: emailOtp };
     try {
       const result = await User.register(newData);
-      res.status(200).json(result);
+      res.json(result);
     } catch (err) {
       res.json({ message: "Error Registering" });
     }
