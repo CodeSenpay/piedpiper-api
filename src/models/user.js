@@ -200,6 +200,16 @@ const getUserLevel = async (data) => {
     return result[0][0];
   }
 };
+
+const undoMFA = async (data) => {
+  try {
+    const [result] = await pool.execute("CALL Undo_MFA(?)", [data]);
+    return result[0][0];
+  } catch (err) {
+    return result[0][0];
+  }
+};
+
 module.exports = {
   authenticate,
   register,
@@ -217,4 +227,5 @@ module.exports = {
   logout,
   getUserData,
   getUserLevel,
+  undoMFA,
 };

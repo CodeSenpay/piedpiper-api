@@ -203,6 +203,15 @@ const getPublicKeyForLogin = async (req, res) => {
   }
 };
 
+const unEnableMFA = async (req, res) => {
+  if (!req.body || Object.keys(req.body).length === 0) {
+    res.json({ response: "No data sent" });
+  } else {
+    const response = await User.undoMFA(req.body);
+    res.json(response);
+  }
+};
+
 const confirmPayment = async () => {};
 const confirmPassword = async (req, res) => {};
 
