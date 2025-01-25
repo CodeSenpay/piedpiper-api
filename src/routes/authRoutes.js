@@ -22,9 +22,10 @@ router.post("/getSecret", authController.getSecretForLogin);
 router.post("/markSuccess", authController.markScannedSuccess);
 router.post("/checkScanStatus", authController.checkScanStatus);
 router.post("/getUserLevel", authController.getUserLevel);
-router.post("/confirm-password",)
+router.post("/confirm-password");
 router.post("/verify-totp", verifyTotpCode);
 router.post("/verify-totp-login", verifyTotpCodeLogin);
+router.post("/undo-mfa", authController.unEnableMFA);
 
 router.post("/generateTotp", generateTotpCode);
 

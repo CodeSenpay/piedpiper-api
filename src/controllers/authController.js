@@ -4,6 +4,7 @@ const { verifyToken } = require("../utils/jwtProcess");
 const { authenticate, authenticator } = require("otplib");
 const QRCode = require("qrcode");
 const TotpAuthenticator = require("../utils/TotpAuthenticator");
+const e = require("express");
 
 const login = async (req, res) => {
   if (!req.body || Object.keys(req.body).length == 0) {
@@ -207,8 +208,16 @@ const unEnableMFA = async (req, res) => {
   if (!req.body || Object.keys(req.body).length === 0) {
     res.json({ response: "No data sent" });
   } else {
-    const response = await User.undoMFA(req.body);
-    res.json(response);
+    try {
+      const response = await User.undoMFA(req.body);
+      if (response.isSuccess) {
+        res.json({ statuscode: 1, message: response.message });
+      } else {
+        res.json({ statuscode: 0, message: response.message });
+      }
+    } catch (err) {
+      res.status(500).json(err.meesage);
+    }
   }
 };
 
@@ -232,4 +241,5 @@ module.exports = {
   getUserLevel,
   confirmPassword,
   confirmPayment,
+  unEnableMFA,
 };
