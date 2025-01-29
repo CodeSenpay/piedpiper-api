@@ -221,6 +221,7 @@ const unEnableMFA = async (req, res) => {
   }
 };
 
+const backupData = async () => {};
 const confirmPayment = async () => {};
 const confirmPassword = async (req, res) => {};
 
@@ -242,4 +243,5 @@ module.exports = {
   confirmPassword,
   confirmPayment,
   unEnableMFA,
+  backupData,
 };

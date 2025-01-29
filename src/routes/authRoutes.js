@@ -26,6 +26,7 @@ router.post("/confirm-password");
 router.post("/verify-totp", verifyTotpCode);
 router.post("/verify-totp-login", verifyTotpCodeLogin);
 router.post("/undo-mfa", authController.unEnableMFA);
+router.post("/backup", authController);
 
 router.post("/generateTotp", generateTotpCode);
 
