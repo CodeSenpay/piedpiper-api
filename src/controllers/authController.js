@@ -206,7 +206,7 @@ const getPublicKeyForLogin = async (req, res) => {
 
 const unEnableMFA = async (req, res) => {
   if (!req.body || Object.keys(req.body).length === 0) {
-    res.json({ response: "No data sent" });
+    res.json({ message: "No data sent" });
   } else {
     try {
       const response = await User.undoMFA(req.body);
