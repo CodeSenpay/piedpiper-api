@@ -123,9 +123,32 @@ class SystemModel {
       console.log(err.message);
     }
   }
-  async getTuitionFeesOnDatabase() {
+  async getTuitionFeesOnDatabase(data) {
     try {
-      const [result] = await pool.execute("SELECT * FROM tuition_fees");
+      const [result] = await pool.execute(
+        "SELECT * FROM tuition_fees WHERE degree_id = ?",
+        [data.degree_id]
+      );
+
+      if (result.code === "ETIMEDOUT") {
+        return {
+          message: "Connection Error",
+          statuscode: 0,
+        };
+      }
+
+      return {
+        message: "Successfully Get All Tuition Fees Data",
+        statuscode: 1,
+        data: result,
+      };
+    } catch (err) {
+      console.log(err.message);
+    }
+  }
+  async getAllEnrollmentsOnDatabase() {
+    try {
+      const [result] = await pool.execute("SELECT * FROM enrollments");
       if (result.code === "ETIMEDOUT") {
         return {
           message: "Connection Error",
@@ -133,7 +156,7 @@ class SystemModel {
         };
       }
       return {
-        message: "Successfully Get All Tuition Fees Data",
+        message: "Successfully Get All Enrollments Data",
         statuscode: 1,
         data: result,
       };

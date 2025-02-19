@@ -58,10 +58,16 @@ class SystemController {
     res.json(response);
   }
   async getTuitionFees(req, res) {
-    const response = await systemModel.getTuitionFeesOnDatabase();
+    if (!req.body || Object.keys(req.body).length === 0) {
+      res.json({ message: "No Data Sent" });
+    }
+    const response = await systemModel.getTuitionFeesOnDatabase(req.body);
     res.json(response);
   }
-  async getAllEnrollments(req, res) {}
+  async getAllEnrollments(req, res) {
+    const response = await systemModel.getAllEnrollmentsOnDatabase();
+    res.json(response);
+  }
 
   async getEnrollment(req, res) {
     if (!req.body || Object.keys(req.body).length === 0) {
