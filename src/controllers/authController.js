@@ -44,6 +44,12 @@ const login = async (req, res) => {
           });
 
           if (isTokenInserted.statuscode === 1) {
+            res.cookie("token", userInfo["token"], {
+              httpOnly: true,
+              secure: false,
+              maxAge: 3600000,
+            });
+
             res.status(200).json({
               message: "Login Success!",
               statuscode: 1,
@@ -101,6 +107,7 @@ const resendOtp = async (req, res) => {
 const logoutUser = async (req, res) => {
   try {
     response = await User.logout(req.body);
+    res.clearCookie("token");
     res.json(response);
   } catch (err) {
     res.json(err.message);

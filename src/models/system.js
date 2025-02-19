@@ -90,6 +90,57 @@ class SystemModel {
       console.log(err.message);
     }
   }
+
+  async getDegreesOnDatabase() {
+    try {
+      const [result] = await pool.execute("SELECT * FROM degrees");
+      if (result.code === "ETIMEDOUT") {
+        return { message: "Connection Error", statuscode: 0 };
+      }
+      return {
+        message: "Successfully Get All Degrees data",
+        statuscode: 1,
+        data: result,
+      };
+    } catch (err) {
+      console.log(err.message);
+    }
+  }
+
+  async getMiscellaneousFeesOnDatabase() {
+    try {
+      const [result] = await pool.execute("SELECT * FROM miscellaneous_fees");
+      if (result.code === "ETIMEDOUT") {
+        return { message: "Connection Error", statuscode: 0 };
+      }
+
+      return {
+        message: "Successfully Get All Miscellaneous Fees Data",
+        statuscode: 1,
+        data: result,
+      };
+    } catch (err) {
+      console.log(err.message);
+    }
+  }
+  async getTuitionFeesOnDatabase() {
+    try {
+      const [result] = await pool.execute("SELECT * FROM tuition_fees");
+      if (result.code === "ETIMEDOUT") {
+        return {
+          message: "Connection Error",
+          statuscode: 0,
+        };
+      }
+      return {
+        message: "Successfully Get All Tuition Fees Data",
+        statuscode: 1,
+        data: result,
+      };
+    } catch (err) {
+      console.log(err.message);
+    }
+  }
 }
 
 module.exports = SystemModel;

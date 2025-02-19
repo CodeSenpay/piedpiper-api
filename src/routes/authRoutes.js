@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const { authenticate } = require("../middleware/authenticate");
+require("dotenv").config();
+const jwt = require("jsonwebtoken");
 
 const {
   verifyTotpCode,
@@ -36,15 +38,20 @@ router.get("/protected", authenticate, (req, res) => {
   res.json({ message: "This is a protected route", user: req.user.decoded });
 });
 
-router.get("/check-token", (req, res) => {
-  const token = req.cookies.accessToken;
+router.get("/verify-jwt", (req, res) => {
+  const token = req.cookies.token;
 
-  if (token) {
-    res.json({ message: `Token Found: ${token}` });
-    `Token Found: ${token}`;
-  } else {
-    res.json({ message: "Token Not Found" });
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized" });
   }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+
+    res.json({ user: decoded }); // ✅ Send user info back
+  });
 });
 
 module.exports = router;

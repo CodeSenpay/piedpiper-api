@@ -78,6 +78,11 @@ const verifyTotpCodeLogin = async (req, res) => {
         token: token,
       });
       if (isTokenInserted.statuscode === 1) {
+        res.cookie("token", token, {
+          httpOnly: true,
+          secure: false,
+          maxAge: 3600000,
+        });
         res.json({
           success: true,
           message: "TOTP verified successfully!",

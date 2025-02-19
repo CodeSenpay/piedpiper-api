@@ -47,6 +47,27 @@ class SystemController {
 
     res.json(response);
   }
+
+  async getDegrees(req, res) {
+    const response = await systemModel.getDegreesOnDatabase();
+    res.json(response);
+  }
+
+  async getMiscellaneousFees(req, res) {
+    const response = await systemModel.getMiscellaneousFeesOnDatabase();
+    res.json(response);
+  }
+  async getTuitionFees(req, res) {
+    const response = await systemModel.getTuitionFeesOnDatabase();
+    res.json(response);
+  }
+  async getAllEnrollments(req, res) {}
+
+  async getEnrollment(req, res) {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      res.json({ message: "No Data Sent" });
+    }
+  }
 }
 
 module.exports = SystemController;
