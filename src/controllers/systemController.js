@@ -54,7 +54,19 @@ class SystemController {
   }
 
   async getMiscellaneousFees(req, res) {
-    const response = await systemModel.getMiscellaneousFeesOnDatabase();
+    if (!req.body || Object.keys(req.body).length === 0) {
+      res.json({ message: "No Data Sent" });
+    }
+    const response = await systemModel.getMiscellaneousFeesOnDatabase(req.body);
+    res.json(response);
+  }
+  async getMiscellaneousFeesTotal(req, res) {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      res.json({ message: "No Data Sent" });
+    }
+    const response = await systemModel.getMiscellaneousFeesTotalOnDatabase(
+      req.body
+    );
     res.json(response);
   }
   async getTuitionFees(req, res) {

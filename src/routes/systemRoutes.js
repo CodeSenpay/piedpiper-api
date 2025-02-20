@@ -11,7 +11,8 @@ router.post("/paybalance", system.payBalance);
 router.post("/get-tuition-fees", system.getTuitionFees);
 router.post("get-enrollment");
 router.get("/get-degrees", system.getDegrees);
-router.get("/get-miscellaneous-fees", system.getMiscellaneousFees);
+router.post("/get-miscellaneous-fees", system.getMiscellaneousFees);
+router.post("/get-miscellaneous-fees-total", system.getMiscellaneousFeesTotal);
 router.get("/get-enrollments", system.getAllEnrollments);
 router.get("/get-all-student", system.getAllStudent);
 

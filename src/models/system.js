@@ -4,13 +4,13 @@ class SystemModel {
   async registerStudentToDatabase(data) {
     try {
       const [result] = await pool.execute(
-        "INSERT INTO student_information (student_id,firstname,lastname,email,course) VALUES (?,?,?,?,?)",
+        "INSERT INTO student_information (student_id,firstname,lastname,email,address) VALUES (?,?,?,?,?)",
         [
           data.student_id,
           data.firstname,
           data.lastname,
           data.email,
-          data.course,
+          data.address,
         ]
       );
 
@@ -46,15 +46,25 @@ class SystemModel {
   async setStudentBalanceOnDatabase(data) {
     try {
       const [result] = await pool.execute(
-        "UPDATE student_information SET balance = ? WHERE student_id = ?",
-        [data.balance, data.student_id]
+        "INSERT INTO enrollments(student_id,degree_id,units,total_tuition,total_miscellaneous,total_amount) VALUES (?,?,?,?,?,?)",
+        [
+          data.student_id,
+          data.degree_id,
+          data.units,
+          data.tuition_fee,
+          data.miscellaneous_fee,
+          data.total_amount,
+        ]
       );
 
-      if (result.changedRows === 0) {
+      if (result.affectedRows != 1) {
         return { message: "Failed to set Balance", statuscode: 0 };
       }
       return { message: "Balance is Set Successfuly", statuscode: 1 };
     } catch (err) {
+      if (err.code === "ER_DUP_ENTRY") {
+        return { message: "Enrollment already exists", statuscode: 0 };
+      }
       console.log(err.message);
     }
   }
@@ -107,9 +117,12 @@ class SystemModel {
     }
   }
 
-  async getMiscellaneousFeesOnDatabase() {
+  async getMiscellaneousFeesOnDatabase(data) {
     try {
-      const [result] = await pool.execute("SELECT * FROM miscellaneous_fees");
+      const [result] = await pool.execute(
+        "SELECT * FROM miscellaneous_fees WHERE degree_id = ?",
+        [data.degree_id]
+      );
       if (result.code === "ETIMEDOUT") {
         return { message: "Connection Error", statuscode: 0 };
       }
@@ -118,6 +131,30 @@ class SystemModel {
         message: "Successfully Get All Miscellaneous Fees Data",
         statuscode: 1,
         data: result,
+      };
+    } catch (err) {
+      console.log(err.message);
+    }
+  }
+  async getMiscellaneousFeesTotalOnDatabase(data) {
+    try {
+      let total = 0;
+      const [result] = await pool.execute(
+        "SELECT * FROM miscellaneous_fees WHERE degree_id = ?",
+        [data.degree_id]
+      );
+      if (result.code === "ETIMEDOUT") {
+        return { message: "Connection Error", statuscode: 0 };
+      }
+
+      result.forEach((num) => {
+        total += parseInt(num.amount);
+      });
+
+      return {
+        message: "Successfully Get Miscellaneous Fees Total Data",
+        statuscode: 1,
+        data: total,
       };
     } catch (err) {
       console.log(err.message);
