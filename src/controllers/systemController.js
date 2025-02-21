@@ -22,6 +22,16 @@ class SystemController {
     res.send(response);
   }
 
+  async getStudentEnrollment(req, res) {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      res.json({ message: "No Data Sent" });
+    }
+
+    const response = await systemModel.getStudentEnrollmentToDatabase(req.body);
+
+    res.send(response);
+  }
+
   async setStudentBalance(req, res) {
     if (!req.body || Object.keys(req.body).length === 0) {
       res.json({ message: "No Data Sent" });

@@ -43,6 +43,22 @@ class SystemModel {
       throw err;
     }
   }
+
+  async getStudentEnrollmentToDatabase(data) {
+    try {
+      const [result] = await pool.execute("CALL Get_Pay_Balance_Info(?)", [
+        data,
+      ]);
+
+      if (result[0].length === 0) {
+        return { message: "Student Not Enrolled Yet", statuscode: 404 };
+      }
+      return { message: "Student Found!", statuscode: 200, data: result[0] };
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  }
   async setStudentBalanceOnDatabase(data) {
     try {
       const [result] = await pool.execute(

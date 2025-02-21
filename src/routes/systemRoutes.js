@@ -6,6 +6,7 @@ const system = new SystemController();
 
 router.post("/register-student", system.registerStudent);
 router.post("/get-student-info", system.getStudentInfo);
+router.post("/get-student-enrollment", system.getStudentEnrollment);
 router.post("/setbalance", system.setStudentBalance);
 router.post("/paybalance", system.payBalance);
 router.post("/get-tuition-fees", system.getTuitionFees);
