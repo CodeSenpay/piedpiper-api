@@ -85,17 +85,29 @@ class SystemModel {
     }
   }
   async storePayBalanceTransaction(data) {
+    const today = new Date();
+    const formattedDate = today.toISOString().split("T")[0]; // Outputs: 'YYYY-MM-DD'
+
     try {
       const [result] = await pool.execute(
-        "INSERT INTO paybalance_transaction (student_id,fullname,course,amount,payment_method) VALUES(?,?,?,?,?)",
+        "INSERT INTO paybalance_transaction (transaction_id,student_id,fullname,degree_id,amount,payment_method,cashier,payment_at) VALUES (?,?,?,?,?,?,?,?)",
         [
-          data.student_id,
-          data.fullname,
-          data.course,
-          data.amount,
-          data.payment_method,
+          data.transaction_id ?? null,
+          data.student_id ?? null,
+          data.fullname ?? null,
+          data.degree_id ?? null,
+          data.amount ?? null,
+          data.payment_method ?? null,
+          data.cashier ?? null,
+          formattedDate ?? null,
         ]
       );
+
+      if (result.affectedRows != 1) {
+        return { message: "Error Inserting Transaction", statuscode: 0 };
+      }
+
+      return { message: "Successfully Inserted Transaction", statuscode: 1 };
     } catch (err) {
       console.log(err.message);
     }

@@ -28,7 +28,6 @@ class SystemController {
     }
 
     const response = await systemModel.getStudentEnrollmentToDatabase(req.body);
-
     res.send(response);
   }
 
@@ -44,7 +43,9 @@ class SystemController {
     if (!req.body || Object.keys(req.body).length === 0) {
       res.json({ message: "No Data Sent" });
     }
-    const response = await systemModel.storePayBalanceTransaction(req.body);
+    const response = await systemModel.storePayBalanceTransaction(
+      req.body.newData
+    );
     res.send(response);
   }
 
