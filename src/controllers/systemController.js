@@ -7,8 +7,8 @@ class SystemController {
     if (!req.body || Object.keys(req.body).length === 0) {
       res.json({ message: "No Data Sent" });
     }
-    const response = await systemModel.registerStudentToDatabase(req.body);
 
+    const response = await systemModel.registerStudentToDatabase(req.body);
     res.status(response.statuscode).send(response);
   }
 
@@ -35,6 +35,11 @@ class SystemController {
     if (!req.body || Object.keys(req.body).length === 0) {
       res.json({ message: "No Data Sent" });
     }
+
+    if (req.user.userEmail === "") {
+      res.json({ message: "Error", statuscode: 0 });
+    }
+
     const response = await systemModel.setStudentBalanceOnDatabase(req.body);
     res.send(response);
   }
@@ -48,6 +53,8 @@ class SystemController {
     );
     res.send(response);
   }
+
+  async otherPayments(req, res) {}
 
   async getAllStudent(req, res) {
     // if (!req.body || Object.keys(req.body).length === 0) {

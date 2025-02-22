@@ -90,7 +90,7 @@ class SystemModel {
 
     try {
       const [result] = await pool.execute(
-        "INSERT INTO paybalance_transaction (transaction_id,student_id,fullname,degree_id,amount,payment_method,cashier,payment_at) VALUES (?,?,?,?,?,?,?,?)",
+        "INSERT INTO paybalance_transaction (transaction_id,student_id,fullname,degree_id,amount,payment_method,payment_type,cashier,payment_at) VALUES (?,?,?,?,?,?,?,?,?)",
         [
           data.transaction_id ?? null,
           data.student_id ?? null,
@@ -98,6 +98,7 @@ class SystemModel {
           data.degree_id ?? null,
           data.amount ?? null,
           data.payment_method ?? null,
+          data.payment_type ?? null,
           data.cashier ?? null,
           formattedDate ?? null,
         ]
