@@ -62,7 +62,7 @@ class SystemModel {
   async setStudentBalanceOnDatabase(data) {
     try {
       const [result] = await pool.execute(
-        "INSERT INTO enrollments(student_id,degree_id,units,total_tuition,total_miscellaneous,total_amount) VALUES (?,?,?,?,?,?)",
+        "INSERT INTO enrollments(student_id,degree_id,units,total_tuition,total_miscellaneous,total_amount,current_amount) VALUES (?,?,?,?,?,?,?)",
         [
           data.student_id,
           data.degree_id,
@@ -70,6 +70,7 @@ class SystemModel {
           data.tuition_fee,
           data.miscellaneous_fee,
           data.total_amount,
+          data.current_amount,
         ]
       );
 
@@ -229,6 +230,66 @@ class SystemModel {
     } catch (err) {
       console.log(err.message);
     }
+  }
+
+  async insertToLedgerDatabase(data) {
+    try {
+      const [result] = pool.execute(
+        "INSERT INTO student_ledger(student_id,transaction_id,fullname,payment_type,debit,credit,balance,payment_method,posted_by,date) VALUES(?,?,?,?,?,?,?,?,?,?)",
+        [
+          data.student_id,
+          data.transaction_id,
+          data.fullname,
+          data.paymeny_type,
+          data.debit,
+          data.credit,
+          data.balance,
+          data.payment_method,
+          data.posted_by,
+          data.date,
+        ]
+      );
+
+      if (result.code === "TIMEDOUT") {
+        return {
+          message: "Connection Error",
+          statuscode: 0,
+        };
+      }
+
+      return {
+        message: "Successfully Inserted Data to Ledger",
+        statuscode: 1,
+        data: result,
+      };
+    } catch (err) {}
+  }
+
+  async getStudentBalanceToDatabase(data) {
+    try {
+      const [result] = pool.execute(
+        "SELECT total_amount FROM enrollments WHERE student_id = ?",
+        [data]
+      );
+
+      if (result.code === "TIMEDOUT") {
+        return {
+          message: "Connection Error",
+          statuscode: 0,
+        };
+      }
+
+      return {
+        message: "Successfully Get Student Balance",
+        statuscode: 1,
+        data: result,
+      };
+    } catch (err) {}
+  }
+
+  async updateStudentCurrentBalanceToDatabase() {
+    try {
+    } catch (err) {}
   }
 }
 

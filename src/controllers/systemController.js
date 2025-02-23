@@ -104,6 +104,10 @@ class SystemController {
       res.json({ message: "No Data Sent" });
     }
   }
+
+  async insertToLedger(req, res) {}
+  async getStudentBalance(req, res) {}
+  async updateCurrentBalance(req, res) {}
 }
 
 module.exports = SystemController;
