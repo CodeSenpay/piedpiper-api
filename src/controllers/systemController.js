@@ -106,7 +106,11 @@ class SystemController {
   }
 
   async insertToLedger(req, res) {}
-  async getStudentBalance(req, res) {}
+  async getStudentBalance(req, res) {
+    if (!req.body || Object.keys(req.body).length) {
+      res.json({ message: "No Data Sent" });
+    }
+  }
   async updateCurrentBalance(req, res) {}
 }
 
