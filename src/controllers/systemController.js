@@ -49,7 +49,7 @@ class SystemController {
       res.json({ message: "No Data Sent" });
     }
     const response = await systemModel.storePayBalanceTransaction(
-      req.body.newData
+      req.body.toPayBalanceData
     );
     res.send(response);
   }
@@ -105,13 +105,42 @@ class SystemController {
     }
   }
 
-  async insertToLedger(req, res) {}
-  async getStudentBalance(req, res) {
-    if (!req.body || Object.keys(req.body).length) {
+  async insertToLedger(req, res) {
+    if (!req.body || Object.keys(req.body).length === 0) {
       res.json({ message: "No Data Sent" });
     }
+
+    const response = await systemModel.insertToLedgerDatabase(req.body);
+    res.json(response);
   }
-  async updateCurrentBalance(req, res) {}
+  async updateCurrentBalance(req, res) {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      res.json({ message: "No Data Sent" });
+    }
+
+    const response = await systemModel.updateStudentCurrentBalanceToDatabase(
+      req.body
+    );
+    res.json(response);
+  }
+
+  async getStudentBalance(req, res) {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      res.json({ message: "No Data Sent" });
+    }
+    const response = await systemModel.getStudentBalanceToDatabase(req.body);
+
+    res.json(response);
+  }
+
+  async getStudentLedger(req, res) {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      res.json({ message: "No Data Sent" });
+    }
+
+    const response = await systemModel.getStudentLedgerToDatabase(req.body);
+    res.json(response);
+  }
 }
 
 module.exports = SystemController;

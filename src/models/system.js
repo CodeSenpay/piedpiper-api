@@ -111,7 +111,10 @@ class SystemModel {
 
       return { message: "Successfully Inserted Transaction", statuscode: 1 };
     } catch (err) {
-      console.log(err.message);
+      return {
+        message: err.message,
+        statuscode: 0,
+      };
     }
   }
 
@@ -233,20 +236,22 @@ class SystemModel {
   }
 
   async insertToLedgerDatabase(data) {
+    const today = new Date();
+    const formattedDate = today.toISOString().split("T")[0]; // Outputs: 'YYYY-MM-DD'
     try {
-      const [result] = pool.execute(
+      const [result] = await pool.execute(
         "INSERT INTO student_ledger(student_id,transaction_id,fullname,payment_type,debit,credit,balance,payment_method,posted_by,date) VALUES(?,?,?,?,?,?,?,?,?,?)",
         [
           data.student_id,
           data.transaction_id,
           data.fullname,
-          data.paymeny_type,
+          data.payment_type,
           data.debit,
-          data.credit,
+          data.amount,
           data.balance,
           data.payment_method,
           data.posted_by,
-          data.date,
+          formattedDate,
         ]
       );
 
@@ -262,14 +267,19 @@ class SystemModel {
         statuscode: 1,
         data: result,
       };
-    } catch (err) {}
+    } catch (err) {
+      return {
+        message: err.message,
+        statuscode: 0,
+      };
+    }
   }
 
   async getStudentBalanceToDatabase(data) {
     try {
-      const [result] = pool.execute(
-        "SELECT total_amount FROM enrollments WHERE student_id = ?",
-        [data]
+      const [result] = await pool.execute(
+        "SELECT total_amount, current_amount FROM enrollments WHERE student_id = ?",
+        [data.student_id]
       );
 
       if (result.code === "TIMEDOUT") {
@@ -284,12 +294,72 @@ class SystemModel {
         statuscode: 1,
         data: result,
       };
-    } catch (err) {}
+    } catch (err) {
+      return {
+        message: err.message,
+        statuscode: 0,
+      };
+    }
   }
 
-  async updateStudentCurrentBalanceToDatabase() {
+  async updateStudentCurrentBalanceToDatabase(data) {
     try {
-    } catch (err) {}
+      const [result] = await pool.execute(
+        "UPDATE enrollments SET current_amount = ? WHERE student_id = ?",
+        [data.current_amount, data.student_id]
+      );
+
+      if (result.code === "TIMEDOUT") {
+        return {
+          message: "Connection Error",
+          statuscode: 0,
+        };
+      }
+
+      return {
+        message: "Successfully Inserted Data to Ledger",
+        statuscode: 1,
+        data: result,
+      };
+    } catch (err) {
+      return {
+        message: err.message,
+        statuscode: 0,
+      };
+    }
+  }
+
+  async getStudentLedgerToDatabase(data) {
+    try {
+      const [result] = await pool.execute(
+        "SELECT * FROM student_ledger WHERE student_id = ? ",
+        [data.student_id]
+      );
+
+      if (result.code === "TIMEDOUT") {
+        return {
+          message: "Connection Error",
+          statuscode: 0,
+        };
+      }
+      if (result.length === 0) {
+        return {
+          message: "No Student Transaction Yet",
+          statuscode: 0,
+          data: result,
+        };
+      }
+      return {
+        message: "Successfully Get Student's Ledger",
+        statuscode: 1,
+        data: result,
+      };
+    } catch (err) {
+      return {
+        message: err.message,
+        statuscode: 0,
+      };
+    }
   }
 }
 
