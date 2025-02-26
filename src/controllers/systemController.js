@@ -133,12 +133,39 @@ class SystemController {
     res.json(response);
   }
 
+  async getOtherPaymentsFees(req, res) {
+    const response = await systemModel.getOtherPaymentsFeesToDatabase();
+    res.json(response);
+  }
+
+  async setOtherPaymentTransaction(req, res) {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      res.json({ message: "No Data Sent" });
+    }
+
+    const response = await systemModel.setOtherPaymentTransactionToDatabase(
+      req.body
+    );
+
+    res.json(response);
+  }
+
   async getStudentLedger(req, res) {
     if (!req.body || Object.keys(req.body).length === 0) {
       res.json({ message: "No Data Sent" });
     }
 
     const response = await systemModel.getStudentLedgerToDatabase(req.body);
+    res.json(response);
+  }
+
+  async getCollection(req, res) {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      res.json({ message: "No Data Sent" });
+    }
+
+    const response = await systemModel.getDailyCollectionToDatabase(req.body);
+
     res.json(response);
   }
 }

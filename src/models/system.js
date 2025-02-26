@@ -361,6 +361,85 @@ class SystemModel {
       };
     }
   }
+
+  async setOtherPaymentTransactionToDatabase(data) {
+    const today = new Date();
+    const formattedDate = today.toISOString().split("T")[0]; // Outputs: 'YYYY-MM-DD'
+    try {
+      const [result] = await pool.execute(
+        "INSERT INTO otherpayment_transaction(transaction_id,student_id,payment_type,amount,fullname,posted_by,date) VALUES(?,?,?,?,?,?,?)",
+        [
+          data.transaction_id,
+          data.student_id,
+          data.payment_type,
+          data.amount,
+          data.fullname,
+          data.posted_by,
+          formattedDate,
+        ]
+      );
+
+      if (result.code === "TIMEDOUT") {
+        return {
+          message: "Connection Error",
+          statuscode: 0,
+        };
+      }
+
+      return {
+        message: "Success",
+        statuscode: 1,
+        data: result,
+      };
+    } catch (err) {
+      return {
+        message: err.message,
+        statuscode: 0,
+      };
+    }
+  }
+
+  async getOtherPaymentsFeesToDatabase() {
+    try {
+      const [result] = await pool.execute("SELECT * FROM other_fees");
+
+      if (result.code === "TIMEDOUT") {
+        return {
+          message: "Connection Error",
+          statuscode: 0,
+        };
+      }
+      return {
+        message: "Success",
+        statuscode: 1,
+        data: result,
+      };
+    } catch (err) {
+      return {
+        message: err.message,
+        statuscode: 0,
+      };
+    }
+  }
+
+  async getDailyCollectionToDatabase(data) {
+    try {
+      const [paybalance, otherpayments] = await Promise.all([
+        pool.execute(
+          "SELECT transaction_id,student_id,fullname,payment_type,amount, DATE_FORMAT(CONVERT_TZ(payment_at, '+00:00', '+08:00'), '%Y-%m-%d') as date FROM paybalance_transaction WHERE DATE(payment_at) = ?",
+          [data.date]
+        ),
+        pool.execute(
+          "SELECT transaction_id,student_id,fullname,payment_type,amount, DATE_FORMAT(CONVERT_TZ(date, '+00:00', '+08:00'), '%Y-%m-%d') as date FROM otherpayment_transaction WHERE DATE(date) = ?",
+          [data.date]
+        ),
+      ]);
+
+      return { paybalance: paybalance[0], otherpayments: otherpayments[0] };
+    } catch (err) {
+      console.log(err.message);
+    }
+  }
 }
 
 module.exports = SystemModel;
