@@ -62,7 +62,7 @@ class SystemModel {
   async setStudentBalanceOnDatabase(data) {
     try {
       const [result] = await pool.execute(
-        "INSERT INTO enrollments(student_id,degree_id,units,total_tuition,total_miscellaneous,total_amount,current_amount) VALUES (?,?,?,?,?,?,?)",
+        "INSERT INTO enrollments(student_id,degree_id,units,total_tuition,total_miscellaneous,total_amount,current_amount,semester,school_year) VALUES (?,?,?,?,?,?,?,?,?)",
         [
           data.student_id,
           data.degree_id,
@@ -71,6 +71,8 @@ class SystemModel {
           data.miscellaneous_fee,
           data.total_amount,
           data.current_amount,
+          data.semester,
+          data.school_year,
         ]
       );
 
@@ -332,7 +334,7 @@ class SystemModel {
   async getStudentLedgerToDatabase(data) {
     try {
       const [result] = await pool.execute(
-        "SELECT * FROM student_ledger WHERE student_id = ? ",
+        "SELECT *, DATE_FORMAT(CONVERT_TZ(date, '+00:00', '+08:00'), '%Y-%m-%d') as date FROM student_ledger WHERE student_id = ? ",
         [data.student_id]
       );
 
@@ -438,6 +440,49 @@ class SystemModel {
       return { paybalance: paybalance[0], otherpayments: otherpayments[0] };
     } catch (err) {
       console.log(err.message);
+    }
+  }
+
+  async getSemester(req, res) {
+    try {
+      const [result] = await pool.execute(
+        "SELECT currentSemester FROM current_semester"
+      );
+      if (result.code === "TIMEDOUT") {
+        res.json({
+          message: "Connection Error",
+          statuscode: 0,
+        });
+      }
+
+      res.json({
+        message: "Success",
+        statuscode: 1,
+        data: result,
+      });
+    } catch (err) {
+      res.json({
+        message: err.message,
+        statuscode: 0,
+      });
+    }
+  }
+  async getSchoolYear(req, res) {
+    try {
+      const [result] = await pool.execute(
+        "SELECT currentSchoolYear FROM current_school_year"
+      );
+
+      if (result.code === "TIMEDOUT") {
+        res.json({ message: "Connection Error", statuscode: 0 });
+      }
+
+      res.json({ message: "Success", statuscode: 1, data: result });
+    } catch (err) {
+      res.json({
+        message: err.message,
+        statuscode: 0,
+      });
     }
   }
 }

@@ -2,8 +2,9 @@ const express = require("express");
 const SystemController = require("../controllers/systemController");
 const { middleWare } = require("../utils/middleware");
 const router = express.Router();
-
+const SystemModel = require("../models/system");
 const system = new SystemController();
+const model = new SystemModel();
 
 router.post("/register-student", middleWare, system.registerStudent);
 router.post("/get-student-info", system.getStudentInfo);
@@ -22,6 +23,10 @@ router.post("/update-current-balance", middleWare, system.updateCurrentBalance);
 router.post("/insert-to-ledger", middleWare, system.insertToLedger);
 
 router.post("/get-student-ledger", middleWare, system.getStudentLedger);
+
+router.get("/get-semester", model.getSemester);
+
+router.get("/get-school-year", model.getSchoolYear);
 
 router.get("/get-otherpayments-fees", system.getOtherPaymentsFees);
 router.get("/get-degrees", system.getDegrees);
