@@ -3,6 +3,7 @@ const otp = require("../utils/generateOtp");
 const { verifyToken } = require("../utils/jwtProcess");
 const { authenticate, authenticator } = require("otplib");
 const QRCode = require("qrcode");
+const jwt = require("../utils/jwtProcess");
 const TotpAuthenticator = require("../utils/TotpAuthenticator");
 const e = require("express");
 
@@ -163,9 +164,37 @@ const getUserLevel = async (req, res) => {
 const checkScanStatus = async (req, res) => {
   try {
     const response = await User.scannedStatus(req.body);
-    res.json(response);
+
+    if (response.statuscode === 1) {
+      const userData = await User.getUserData({ user_email: req.body.email });
+
+      if (userData.statuscode === 1) {
+        const token = await jwt.generateToken(userData.user_id, userData.email);
+        console.log(`token: ${token}`);
+        const isTokenInserted = await User.storeToken({
+          email: userData.email,
+          token: token,
+        });
+
+        if (isTokenInserted.statuscode === 1) {
+          res.cookie("token", token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "strict",
+            maxAge: 3600000,
+          });
+          res.status(200).json({
+            statuscode: 1,
+            message: "Success",
+          });
+        }
+      }
+    } else {
+      res.json({ statuscode: 0, message: "Invalid!" });
+    }
   } catch (err) {
     console.log(err.message);
+    res.status(500).json({ statuscode: 0, message: "Server error" });
   }
 };
 
