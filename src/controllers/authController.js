@@ -169,7 +169,10 @@ const checkScanStatus = async (req, res) => {
       const userData = await User.getUserData({ user_email: req.body.email });
 
       if (userData.statuscode === 1) {
-        const token = await jwt.generateToken(userData.user_id, userData.email);
+        const token = await jwt.generateToken(
+          userData.user_level,
+          userData.email
+        );
         console.log(`token: ${token}`);
         const isTokenInserted = await User.storeToken({
           email: userData.email,
@@ -261,6 +264,24 @@ const backupData = async () => {};
 const confirmPayment = async () => {};
 const confirmPassword = async (req, res) => {};
 
+const getEmployees = async (req, res) => {
+  try {
+    const employees = await User.getEmployees();
+
+    return res.status(employees.statuscode).json({
+      message: employees.message,
+      statuscode: employees.statuscode,
+      data: employees.data,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      message: "Internal server error",
+      statuscode: 500,
+    });
+  }
+};
+
 module.exports = {
   login,
   signup,
@@ -280,4 +301,5 @@ module.exports = {
   confirmPayment,
   unEnableMFA,
   backupData,
+  getEmployees,
 };

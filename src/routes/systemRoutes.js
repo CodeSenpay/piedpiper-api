@@ -15,8 +15,30 @@ router.post("/setbalance", middleWare, system.setStudentBalance);
 router.post("/otherpayments", middleWare);
 router.post("/get-tuition-fees", system.getTuitionFees);
 router.post("/get-miscellaneous-fees", system.getMiscellaneousFees);
+router.post("/get-transaction", system.getTransactionDetails);
+router.post(
+  "/insert-transaction-adjustment",
+  middleWare,
+  system.insertTransactionAdjustment
+);
+router.post(
+  "/update-transaction-amount",
+  middleWare,
+  system.updateTransactionAmount
+);
 
 router.post("/daily-collection", system.getCollection);
+
+router.post(
+  "/get-other-transactions-by-cashier",
+  middleWare,
+  system.getOtherTransactionsByCashier
+);
+router.post(
+  "/get-paybalance-transactions-by-cashier",
+  middleWare,
+  system.getPaybalanceTransactionsByCashier
+);
 
 router.post("/paybalance", middleWare, system.payBalance);
 router.post("/update-current-balance", middleWare, system.updateCurrentBalance);

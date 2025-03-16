@@ -34,6 +34,8 @@ router.post("/generateTotp", generateTotpCode);
 
 router.post("/storePublicKey", authController.storePublicKeyForEncryption);
 
+router.get("/get-employees", authController.getEmployees);
+
 router.get("/protected", authenticate, (req, res) => {
   res.json({ message: "This is a protected route", user: req.user.decoded });
 });
@@ -49,7 +51,7 @@ router.get("/verify-jwt", (req, res) => {
     if (err) {
       return res.status(401).json({ message: "Invalid token" });
     }
-
+    console.log(decoded);
     res.json({ user: decoded }); // ✅ Send user info back
   });
 });

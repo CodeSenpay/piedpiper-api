@@ -54,6 +54,51 @@ class SystemController {
     res.send(response);
   }
 
+  async getTransactionDetails(req, res) {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.json({ message: "No Data Sent", statuscode: 400 });
+    }
+
+    try {
+      const response = await systemModel.getTransactionDetailsFromDatabase(
+        req.body
+      );
+      res.json(response);
+    } catch (err) {
+      res.status(500).json({ message: err.message, statuscode: 500 });
+    }
+  }
+
+  async insertTransactionAdjustment(req, res) {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.json({ message: "No Data Sent", statuscode: 400 });
+    }
+
+    try {
+      const response = await systemModel.insertTransactionAdjustmentToDatabase(
+        req.body
+      );
+      res.json(response);
+    } catch (err) {
+      res.status(500).json({ message: err.message, statuscode: 500 });
+    }
+  }
+
+  async updateTransactionAmount(req, res) {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.json({ message: "No Data Sent", statuscode: 400 });
+    }
+
+    try {
+      const response = await systemModel.updateTransactionAmountInDatabase(
+        req.body
+      );
+      res.json(response);
+    } catch (err) {
+      res.status(500).json({ message: err.message, statuscode: 500 });
+    }
+  }
+
   async otherPayments(req, res) {}
 
   async getAllStudent(req, res) {
@@ -167,6 +212,36 @@ class SystemController {
     const response = await systemModel.getDailyCollectionToDatabase(req.body);
 
     res.json(response);
+  }
+
+  async getOtherTransactionsByCashier(req, res) {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.json({ message: "No Data Sent", statuscode: 400 });
+    }
+
+    try {
+      const response = await systemModel.getOtherTransactionsByCashier(
+        req.body
+      );
+      res.json(response);
+    } catch (err) {
+      res.status(500).json({ message: err.message, statuscode: 500 });
+    }
+  }
+
+  async getPaybalanceTransactionsByCashier(req, res) {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.json({ message: "No Data Sent", statuscode: 400 });
+    }
+
+    try {
+      const response = await systemModel.getPaybalanceTransactionsByCashier(
+        req.body
+      );
+      res.json(response);
+    } catch (err) {
+      res.status(500).json({ message: err.message, statuscode: 500 });
+    }
   }
 }
 

@@ -26,6 +26,109 @@ class SystemModel {
     }
   }
 
+  async getTransactionDetailsFromDatabase(data) {
+    try {
+      const [result] = await pool.execute(
+        "SELECT * FROM paybalance_transaction WHERE transaction_id = ?",
+        [data.transaction_id]
+      );
+
+      if (result.length === 0) {
+        return {
+          message: "Transaction not found",
+          statuscode: 404,
+        };
+      }
+
+      return {
+        message: "Transaction found",
+        statuscode: 200,
+        data: result[0],
+      };
+    } catch (err) {
+      console.log(err);
+      return {
+        message: err.message,
+        statuscode: 500,
+      };
+    }
+  }
+
+  async insertTransactionAdjustmentToDatabase(data) {
+    try {
+      const [result] = await pool.execute(
+        "INSERT INTO transaction_adjustments (transaction_id, reason, student_id, adjusted_balance, adjusted_by, adjustment_date) VALUES (?, ?, ?, ?, ?, ?)",
+        [
+          data.transaction_id,
+          data.reason,
+          data.student_id,
+          data.adjusted_balance,
+          data.adjusted_by,
+          data.adjustment_date,
+        ]
+      );
+
+      if (result.affectedRows !== 1) {
+        return {
+          message: "Failed to record transaction adjustment",
+          statuscode: 0,
+        };
+      }
+
+      return {
+        message: "Transaction adjustment recorded successfully",
+        statuscode: 1,
+      };
+    } catch (err) {
+      console.log(err);
+      return {
+        message: err.message,
+        statuscode: 0,
+      };
+    }
+  }
+
+  async updateTransactionAmountInDatabase(data) {
+    try {
+      // First check if the transaction exists
+      const [checkResult] = await pool.execute(
+        "SELECT * FROM paybalance_transaction WHERE transaction_id = ?",
+        [data.transaction_id]
+      );
+
+      if (checkResult.length === 0) {
+        return {
+          message: "Transaction not found",
+          statuscode: 404,
+        };
+      }
+
+      // Update the transaction amount
+      const [result] = await pool.execute(
+        "UPDATE paybalance_transaction SET amount = ? WHERE transaction_id = ?",
+        [data.amount, data.transaction_id]
+      );
+
+      if (result.affectedRows !== 1) {
+        return {
+          message: "Failed to update transaction amount",
+          statuscode: 0,
+        };
+      }
+
+      return {
+        message: "Transaction amount updated successfully",
+        statuscode: 1,
+      };
+    } catch (err) {
+      console.log(err);
+      return {
+        message: err.message,
+        statuscode: 0,
+      };
+    }
+  }
+
   async getStudentInfoToDatabase(data) {
     try {
       const [result] = await pool.execute(
@@ -246,14 +349,14 @@ class SystemModel {
         [
           data.student_id,
           data.transaction_id,
-          data.fullname,
+          data.fullname || null,
           data.payment_type,
-          data.debit,
-          data.amount,
+          data.debit || 0,
+          data.credit || 0,
           data.balance,
           data.payment_method,
           data.posted_by,
-          formattedDate,
+          data.date || formattedDate,
         ]
       );
 
@@ -319,7 +422,7 @@ class SystemModel {
       }
 
       return {
-        message: "Successfully Inserted Data to Ledger",
+        message: "Successfully Updated Student Balance",
         statuscode: 1,
         data: result,
       };
@@ -440,6 +543,64 @@ class SystemModel {
       return { paybalance: paybalance[0], otherpayments: otherpayments[0] };
     } catch (err) {
       console.log(err.message);
+    }
+  }
+
+  async getOtherTransactionsByCashier(data) {
+    try {
+      const [result] = await pool.execute(
+        "SELECT transaction_id, student_id, fullname, payment_type, amount, DATE_FORMAT(CONVERT_TZ(date, '+00:00', '+08:00'), '%Y-%m-%d') as date FROM otherpayment_transaction WHERE posted_by = ?",
+        [data.cashierEmail]
+      );
+
+      if (result.length === 0) {
+        return {
+          message: "No transactions found for this cashier",
+          statuscode: 404,
+          data: [],
+        };
+      }
+
+      return {
+        message: "Transactions retrieved successfully",
+        statuscode: 200,
+        data: result,
+      };
+    } catch (err) {
+      console.log(err);
+      return {
+        message: err.message,
+        statuscode: 500,
+      };
+    }
+  }
+
+  async getPaybalanceTransactionsByCashier(data) {
+    try {
+      const [result] = await pool.execute(
+        "SELECT transaction_id, student_id, fullname, degree_id, amount, payment_method, payment_type, DATE_FORMAT(CONVERT_TZ(payment_at, '+00:00', '+08:00'), '%Y-%m-%d') as date FROM paybalance_transaction WHERE cashier = ?",
+        [data.cashierEmail]
+      );
+
+      if (result.length === 0) {
+        return {
+          message: "No transactions found for this cashier",
+          statuscode: 404,
+          data: [],
+        };
+      }
+
+      return {
+        message: "Transactions retrieved successfully",
+        statuscode: 200,
+        data: result,
+      };
+    } catch (err) {
+      console.log(err);
+      return {
+        message: err.message,
+        statuscode: 500,
+      };
     }
   }
 

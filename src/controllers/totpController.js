@@ -72,7 +72,10 @@ const verifyTotpCodeLogin = async (req, res) => {
   if (isValid) {
     const userData = await getUserData({ user_email: userEmail });
     if (userData.statuscode === 1) {
-      const token = await jwt.generateToken(userData.user_id, userData.email);
+      const token = await jwt.generateToken(
+        userData.user_level,
+        userData.email
+      );
       const isTokenInserted = await storeToken({
         email: userData.email,
         token: token,

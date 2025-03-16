@@ -20,7 +20,7 @@ const authenticate = async (data) => {
 
       if (isValid) {
         const token = await jwt.generateToken(
-          result[0][0].user_id,
+          result[0][0].user_level,
           result[0][0].email
         );
         return { token, isApprove: 1 };
@@ -203,20 +203,44 @@ const getUserLevel = async (data) => {
 
 const undoMFA = async (data) => {
   try {
-    const [result] = await pool.execute("CALL Undo_MFA(?)", [data]);
+    const [result] = await pool.execute("CALL Undo_MFA(?)", [data.email]);
     return result[0][0];
   } catch (err) {
-    return result[0][0];
+    console.log(err);
+    return { message: err.message, statuscode: 0 };
+  }
+};
+
+const getEmployees = async () => {
+  try {
+    const [result] = await pool.execute(
+      "SELECT username,email,user_level FROM users WHERE user_level != 'student'"
+    );
+
+    if (result.length === 0) {
+      return { message: "No employees found", statuscode: 404, data: [] };
+    }
+
+    return {
+      message: "Employees retrieved successfully",
+      statuscode: 200,
+      data: result,
+    };
+  } catch (err) {
+    console.log(err);
+    return { message: err.message, statuscode: 500 };
   }
 };
 
 module.exports = {
   authenticate,
   register,
+  logout,
   updateOtp,
   verifyEmail,
   checkMFAStatus,
   getUserSecret,
+  getUserData,
   storeUserSecret,
   MFAEnable,
   storeToken,
@@ -224,8 +248,7 @@ module.exports = {
   getPublicKey,
   scannedSuccess,
   scannedStatus,
-  logout,
-  getUserData,
   getUserLevel,
   undoMFA,
+  getEmployees,
 };
