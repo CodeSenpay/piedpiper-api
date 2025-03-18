@@ -193,6 +193,42 @@ class SystemModel {
       console.log(err.message);
     }
   }
+
+  async create(newStudent) {
+    try {
+      const query = `
+        INSERT INTO students (
+          student_id, first_name, last_name, middle_name, gender, birth_date,
+          email, phone_number, address, course, year_level, semester, section,
+          emergency_contact_name, emergency_contact_number
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      const [result] = await pool.execute(query, [
+        newStudent.studentId ?? "",
+        newStudent.firstName ?? "",
+        newStudent.lastName ?? "",
+        newStudent.middleName ?? "",
+        newStudent.gender ?? "",
+        newStudent.birthDate ?? "",
+        newStudent.email ?? "",
+        newStudent.phoneNumber ?? "",
+        newStudent.address ?? "",
+        newStudent.course ?? "",
+        newStudent.yearLevel ?? "",
+        newStudent.semester ?? "",
+        newStudent.section ?? "",
+        newStudent.emergencyContactName ?? "",
+        newStudent.emergencyContactNumber ?? "",
+      ]);
+
+      return { id: result.insertId, ...newStudent };
+    } catch (err) {
+      console.log("Error: ", err);
+      throw err;
+    }
+  }
+
   async getTuitionFeesOnDatabase(data) {
     try {
       const [result] = await pool.execute(
@@ -422,22 +458,255 @@ class SystemModel {
     }
   }
 
-  async getDailyCollectionToDatabase(data) {
+  async findByStudentId(studentId) {
     try {
-      const [paybalance, otherpayments] = await Promise.all([
-        pool.execute(
-          "SELECT transaction_id,student_id,fullname,payment_type,amount, DATE_FORMAT(CONVERT_TZ(payment_at, '+00:00', '+08:00'), '%Y-%m-%d') as date FROM paybalance_transaction WHERE DATE(payment_at) = ?",
-          [data.date]
-        ),
-        pool.execute(
-          "SELECT transaction_id,student_id,fullname,payment_type,amount, DATE_FORMAT(CONVERT_TZ(date, '+00:00', '+08:00'), '%Y-%m-%d') as date FROM otherpayment_transaction WHERE DATE(date) = ?",
-          [data.date]
-        ),
-      ]);
+      const [rows] = await pool.execute(
+        "SELECT * FROM students WHERE student_id = ?",
+        [studentId]
+      );
 
-      return { paybalance: paybalance[0], otherpayments: otherpayments[0] };
+      return rows.length ? rows[0] : null;
     } catch (err) {
-      console.log(err.message);
+      console.log("Error: ", err);
+      throw err;
+    }
+  }
+
+  async findByEmail(email) {
+    try {
+      const [rows] = await pool.execute(
+        "SELECT * FROM students WHERE email = ?",
+        [email]
+      );
+
+      return rows.length ? rows[0] : null;
+    } catch (err) {
+      console.log("Error: ", err);
+      throw err;
+    }
+  }
+
+  async getAll() {
+    try {
+      const [rows] = await pool.execute("SELECT * FROM students");
+      return rows;
+    } catch (err) {
+      console.log("Error: ", err);
+      throw err;
+    }
+  }
+
+  async getTeachingLoadByYearAndSemester(yearLevel, semester) {
+    try {
+      // SQL query with prepared statement
+      const query = `
+        SELECT 
+          s.subject_code, 
+          s.subject_name, 
+          s.lec_units, 
+          s.lab_units, 
+          s.course_code, 
+          c.course_name, 
+          s.category, 
+          s.semester, 
+          s.year_level 
+        FROM subjects s 
+        JOIN course c ON s.course_code = c.course_code 
+        WHERE s.year_level = ? AND s.semester = ?
+      `;
+
+      // Execute the query with parameters
+      const [results] = await pool.execute(query, [yearLevel, semester]);
+
+      return results;
+    } catch (error) {
+      console.error("Error in getTeachingLoadByYearAndSemester model:", error);
+      throw error;
+    }
+  }
+
+  async getStudentsBySubjectCode(subjectCode) {
+    try {
+      // SQL query with prepared statement
+      const query = `
+    SELECT 
+    e.subject_code,
+    s.subject_name,
+    e.student_id,
+    st.first_name,
+    st.last_name,
+    st.year_level,
+    st.semester,
+    st.section,
+    COALESCE(g.score, 'N/A') AS score
+    FROM enrollments e
+    JOIN subjects s ON e.subject_code = s.subject_code
+    JOIN students st ON e.student_id = st.student_id
+    LEFT JOIN grades g ON e.student_id = g.student_number AND e.subject_code = g.subject_code
+    WHERE e.subject_code = ?;
+      `;
+
+      // Execute the query with parameters
+      const [results] = await pool.execute(query, [subjectCode]);
+
+      // Format the results to include full name
+      const formattedResults = results.map((student) => ({
+        ...student,
+        name: `${student.first_name} ${student.last_name}`,
+      }));
+
+      return formattedResults;
+    } catch (error) {
+      console.error("Error in getStudentsBySubjectCode model:", error);
+      throw error;
+    }
+  }
+  async saveGrades(grades) {
+    let connection;
+    try {
+      // Start a transaction
+      connection = await pool.getConnection();
+      await connection.beginTransaction();
+
+      // Prepare the insert query
+      const insertQuery = `
+        INSERT INTO grades (student_number, subject_code, score, semester, year)
+        VALUES (?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+        score = VALUES(score)
+      `;
+
+      // Insert each grade
+      const results = [];
+      for (const grade of grades) {
+        const [result] = await connection.execute(insertQuery, [
+          grade.student_number,
+          grade.subject_code,
+          grade.score,
+          grade.semester,
+          grade.year,
+        ]);
+
+        results.push(result);
+      }
+
+      // Commit the transaction
+      await connection.commit();
+      connection.release();
+
+      return {
+        totalSaved: results.length,
+        results: results,
+      };
+    } catch (error) {
+      // Rollback the transaction in case of error
+      if (connection) {
+        await connection.rollback();
+        connection.release();
+      }
+      console.error("Error in saveGrades model:", error);
+      throw error;
+    }
+  }
+
+  async getAllStudentGrades(filters = {}) {
+    try {
+      // Start with the base query
+      let query = `
+        SELECT 
+          g.student_number,
+          CONCAT(st.first_name, ' ', COALESCE(st.middle_name, ''), ' ', st.last_name) AS full_name,
+          g.subject_code,
+          s.subject_name,
+          g.score,
+          g.semester,
+          st.year_level
+        FROM grades g
+        JOIN students st ON g.student_number = st.student_id
+        JOIN subjects s ON g.subject_code = s.subject_code
+      `;
+
+      // Initialize parameters array
+      const params = [];
+
+      // Add WHERE clause conditions based on filters
+      const conditions = [];
+
+      if (filters.yearLevel) {
+        conditions.push("st.year_level = ?");
+        params.push(filters.yearLevel);
+      }
+
+      if (filters.semester) {
+        conditions.push("g.semester = ?");
+        params.push(filters.semester);
+      }
+
+      if (filters.subjectCode) {
+        conditions.push("g.subject_code = ?");
+        params.push(filters.subjectCode);
+      }
+
+      // Add the WHERE clause if there are conditions
+      if (conditions.length > 0) {
+        query += " WHERE " + conditions.join(" AND ");
+      }
+
+      // Add the ORDER BY clause
+      query += " ORDER BY st.year_level ASC, g.semester DESC, st.last_name ASC";
+
+      const [results] = await pool.execute(query, params);
+
+      return results;
+    } catch (error) {
+      console.error("Error in getAllStudentGrades model:", error);
+      throw error;
+    }
+  }
+
+  async getStudentGradesByStudentId(studentId) {
+    try {
+      const query = `
+        SELECT 
+          st.student_id,
+          CONCAT(st.first_name, ' ', st.middle_name, ' ', st.last_name) AS full_name,
+          g.subject_code,
+          s.subject_name,
+          g.score,
+          g.semester,
+          st.year_level
+        FROM grades g
+        JOIN subjects s ON g.subject_code = s.subject_code
+        JOIN students st ON g.student_number = st.student_id
+        WHERE g.student_number = ?
+      `;
+
+      const [results] = await pool.execute(query, [studentId]);
+
+      return results;
+    } catch (error) {
+      console.error("Error in getStudentGradesByStudentId model:", error);
+      throw error;
+    }
+  }
+
+  async getAllSubjects() {
+    try {
+      const query = `
+        SELECT * FROM subjects
+      `;
+
+      const [results] = await pool.execute(query);
+
+      return {
+        message: "Successfully retrieved all subjects",
+        statuscode: 1,
+        data: results,
+        count: results.length,
+      };
+    } catch (error) {
+      console.error("Error in getAllSubjects model:", error);
+      throw error;
     }
   }
 }

@@ -20,7 +20,7 @@ const authenticate = async (data) => {
 
       if (isValid) {
         const token = await jwt.generateToken(
-          result[0][0].user_id,
+          result[0][0].user_level,
           result[0][0].email
         );
         return { token, isApprove: 1 };
@@ -46,6 +46,7 @@ const register = async (data) => {
       newData.user_email,
       newData.otp
     );
+
     if (isEmailed.statuscode != 1) {
       return { response: "No Intenet Connection", statuscode: 5 };
     } else {
