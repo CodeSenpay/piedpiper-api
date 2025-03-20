@@ -709,6 +709,40 @@ class SystemModel {
       throw error;
     }
   }
+
+  async getGradesForClustering() {
+    try {
+      // Query to get all grades with student and subject information
+      const query = `
+        SELECT 
+          g.student_number,
+          st.first_name,
+          st.last_name,
+          g.subject_code,
+          s.subject_name,
+          g.score,
+          g.semester,
+          g.year,
+          st.year_level,
+          st.section
+        FROM grades g
+        JOIN students st ON g.student_number = st.student_id
+        JOIN subjects s ON g.subject_code = s.subject_code
+        ORDER BY g.student_number, g.subject_code
+      `;
+
+      const [results] = await pool.execute(query);
+
+      // Add a default course field since it's expected by the Python ML API
+      return results.map((record) => ({
+        ...record,
+        course: record.year_level ? `Year ${record.year_level}` : "Unknown",
+      }));
+    } catch (error) {
+      console.error("Error in getGradesForClustering model:", error);
+      throw error;
+    }
+  }
 }
 
 module.exports = SystemModel;

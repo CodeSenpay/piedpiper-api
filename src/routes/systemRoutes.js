@@ -37,4 +37,5 @@ router.get("/all-student-grades", system.getAllStudentGrades);
 router.post("/student-grades", system.getStudentGradesByStudentId);
 router.get("/get-all-subjects", system.getAllSubjects);
 router.get("/all-subjects", system.getAllSubjects);
+router.post("/cluster-students", system.clusterStudents);
 module.exports = router;

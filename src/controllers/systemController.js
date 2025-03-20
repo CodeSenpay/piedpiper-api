@@ -4,6 +4,7 @@ const multer = require("multer");
 const xlsx = require("xlsx");
 const path = require("path");
 const fs = require("fs");
+const fetch = require("node-fetch");
 
 // Configure multer storage
 const storage = multer.diskStorage({
@@ -611,6 +612,74 @@ class SystemController {
       return res.status(500).json({
         success: false,
         message: "Internal server error",
+        error: error.message,
+      });
+    }
+  }
+
+  async clusterStudents(req, res) {
+    try {
+      console.log("Starting student clustering process");
+
+      // Get grades data from the model
+      const gradesData = await systemModel.getGradesForClustering();
+      console.log(
+        `Retrieved ${gradesData?.length || 0} grade records from database`
+      );
+
+      if (!gradesData || gradesData.length === 0) {
+        console.log("No grades data found for clustering");
+        return res.status(404).json({
+          success: false,
+          message: "No grades data found for clustering",
+        });
+      }
+
+      // Send grades data to Python ML API for clustering
+      let response;
+      try {
+        console.log("Sending data to ML API at http://127.0.0.1:5001/cluster");
+        response = await fetch("http://127.0.0.1:5001/cluster", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ grades: gradesData }),
+        });
+
+        console.log(`ML API responded with status: ${response.status}`);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("ML API error response:", errorText);
+          throw new Error(
+            `ML API responded with status: ${response.status}, message: ${errorText}`
+          );
+        }
+      } catch (fetchError) {
+        console.error("Error connecting to ML API:", fetchError);
+        return res.status(503).json({
+          success: false,
+          message:
+            "Unable to connect to ML service. Please ensure it's running.",
+          error: fetchError.message,
+        });
+      }
+
+      const clusterResults = await response.json();
+      console.log(
+        `Received ${clusterResults?.length || 0} clustered student records`
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: clusterResults,
+      });
+    } catch (error) {
+      console.error("Error in clusterStudents controller:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Error performing student clustering",
         error: error.message,
       });
     }
